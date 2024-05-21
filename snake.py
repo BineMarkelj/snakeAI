@@ -1,8 +1,10 @@
 import pygame
 import time
 import random
+from algorithms import *
 
 
+# choose the algorithm to solve the game
 SOLVING_ALGORITHM = "MANUAL"
 
 
