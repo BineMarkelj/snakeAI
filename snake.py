@@ -31,7 +31,7 @@ clock = pygame.time.Clock()
 
 # Define snake block and speed
 snake_block = 10
-snake_speed = 15
+snake_speed = 500
 
 # Define fonts
 large_font_style = pygame.font.SysFont(None, 75)
@@ -65,10 +65,19 @@ def gameLoop():  # main function
 
     # Initialize the snake with a length of 3
     for i in range(Length_of_snake):
-        snake_List.append([x1 - i * snake_block, y1])
+        snake_List.append([int(x1 - i * snake_block), int(y1)])
 
-    foodx = round(random.randrange(0, dis_width - snake_block) / 10.0) * 10.0
-    foody = round(random.randrange(0, dis_height - snake_block) / 10.0) * 10.0
+    foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
+    foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
+
+    # food should not be on the snake_list
+    while [foodx, foody] in snake_List:
+        foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
+        foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
+
+    print("Food at: ",[foodx, foody])
+    print("Snake at: ",snake_List)
+    print(f'food in snake list: {[foodx, foody] in snake_List}')
 
     while not game_over:
 
@@ -108,6 +117,10 @@ def gameLoop():  # main function
         #Alghoritm for path 
         if len(path) == 0:
             path = algorithm_bfs(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+
+        if (len(path) == 0):
+            print("No path found")
+
         x1_change = path[-1][0]
         y1_change = path[-1][1]
         path.pop()
@@ -116,7 +129,7 @@ def gameLoop():  # main function
         y1 += y1_change*snake_block
         dis.fill(blue)
         pygame.draw.rect(dis, green, [foodx, foody, snake_block, snake_block])
-        snake_Head = [x1, y1]
+        snake_Head = [int(x1), int(y1)]
         snake_List.append(snake_Head)
         if len(snake_List) > Length_of_snake:
             del snake_List[0]
@@ -129,8 +142,18 @@ def gameLoop():  # main function
         pygame.display.update()
 
         if x1 == foodx and y1 == foody:
-            foodx = round(random.randrange(0, dis_width - snake_block) / 10.0) * 10.0
-            foody = round(random.randrange(0, dis_height - snake_block) / 10.0) * 10.0
+            foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
+            foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
+
+            # make sure the food is not on the snake_list/10.0
+            while [foodx, foody] in snake_List:
+                foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
+                foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
+
+            print("Food at: ",[foodx, foody])
+            print("Snake at: ", snake_List)
+            print(f'food in snake list: {[foodx, foody] in snake_List}')
+
             Length_of_snake += 1
 
         clock.tick(snake_speed)
