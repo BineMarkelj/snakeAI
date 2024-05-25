@@ -96,7 +96,7 @@ def algorithm_A_star(snake_list, fruit, grid):
     path = []
     while fruit != start:
         next = [cell_details[fruit[0]][fruit[1]].parent_i, cell_details[fruit[0]][fruit[1]].parent_j]
-        if next == 0.0:
+        if next == [0,0]:
             print("Error in backtracking the path")    
             break
         if fruit[0] > next[0]:
@@ -111,6 +111,21 @@ def algorithm_A_star(snake_list, fruit, grid):
 
     return path
 
+def algorithm_A_star_with_dead_end_improvment(snake_list, fruit, grid):
+    path = algorithm_A_star(snake_list, fruit, grid)
+    if len(path) > 0:
+        return path
+    
+    #print("snake ass",snake_list[0])
+    #print("grid size: ",grid)
+
+    path = algorithm_A_star(snake_list[1:], snake_list[0], grid)
+    if len(path) > 0:
+        #print("new path")
+        return [path[0]]
+        
+    print("no path found")
+    return []
 
 def algorithm_bfs(snake_list, fruit, grid):
     #Convert to integers and set start
@@ -153,7 +168,7 @@ def algorithm_bfs(snake_list, fruit, grid):
                         visited_grid[neighbor[0]][neighbor[1]] = True
         #If current node is fruit, break the search
         if current == fruit:
-            print("break")
+            #print("break")
             break
 
 
@@ -181,10 +196,23 @@ def algorithm_bfs(snake_list, fruit, grid):
         if fruit[1] < next[1]:
             path.append([0,-1])
         fruit = next
-
+    
     return path
 
-
+def algorithm_bfs_with_dead_end_improvment(snake_list, fruit, grid):
+    path = algorithm_bfs(snake_list, fruit, grid)
+    if len(path) > 0:
+        return path
+    
+    path = algorithm_bfs(snake_list[1:], snake_list[0], grid)
+    """ if len(path) == 0:
+        print("NO PATH!")
+        time.sleep(10) """
+    if len(path) > 0:
+        print("new path found")
+        return [path[0]]
+    print("no path found")
+    return []
 
 # TODO: BINE
 def algorithm_dfs():
