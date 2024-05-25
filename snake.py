@@ -118,9 +118,6 @@ def gameLoop():  # main function
         if len(path) == 0:
             path = algorithm_bfs(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
 
-        if (len(path) == 0):
-            print("No path found")
-
         x1_change = path[-1][0]
         y1_change = path[-1][1]
         path.pop()
