@@ -31,7 +31,7 @@ clock = pygame.time.Clock()
 
 # Define snake block and speed
 snake_block = 10
-snake_speed = 500
+snake_speed = 250
 
 # Define fonts
 large_font_style = pygame.font.SysFont(None, 75)
@@ -66,6 +66,8 @@ def gameLoop():  # main function
     # Initialize the snake with a length of 3
     for i in range(Length_of_snake):
         snake_List.append([int(x1 - i * snake_block), int(y1)])
+
+    x1 = snake_List[-1][0]
 
     foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
     foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
@@ -116,7 +118,11 @@ def gameLoop():  # main function
         
         #Alghoritm for path 
         if len(path) == 0:
-            path = algorithm_bfs(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+            path = algorithm_dfs(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+
+        if (len(path) == 0):
+            print(f'path for food: {foodx, foody} not found!')
+            game_close = True
 
         x1_change = path[-1][0]
         y1_change = path[-1][1]
@@ -146,6 +152,10 @@ def gameLoop():  # main function
             while [foodx, foody] in snake_List:
                 foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
                 foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
+
+            # draw the food
+            pygame.draw.rect(dis, green, [foodx, foody, snake_block, snake_block])
+            pygame.display.update()
 
             print("Food at: ",[foodx, foody])
             print("Snake at: ", snake_List)
