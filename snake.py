@@ -38,8 +38,10 @@ large_font_style = pygame.font.SysFont(None, 75)
 small_font_style = pygame.font.SysFont(None, 35)
 
 def our_snake(snake_block, snake_list):
-    for x in snake_list:
+    pygame.draw.rect(dis, red, [snake_list[-1][0], snake_list[-1][1], snake_block, snake_block])
+    for x in snake_list[1:-1]:
         pygame.draw.rect(dis, black, [x[0], x[1], snake_block, snake_block])
+    pygame.draw.rect(dis, white, [snake_list[0][0], snake_list[0][1], snake_block, snake_block])
 
 def message(title, instruction1, instruction2, color):
     title_surface = large_font_style.render(title, True, color)
@@ -52,10 +54,7 @@ def message(title, instruction1, instruction2, color):
 def gameLoop():  # main function
     game_over = False
     game_close = False
-
-    x1 = dis_width / 2
-    y1 = dis_height / 2
-
+    
     x1_change = snake_block  # Initial direction to the right
     y1_change = 0
 
@@ -63,12 +62,14 @@ def gameLoop():  # main function
     Length_of_snake = 3
     path = []
 
+    x1 = dis_width / 2
+    y1 = dis_height / 2
+
     # Initialize the snake with a length of 3
     for i in range(Length_of_snake):
         snake_List.append([int(x1 - i * snake_block), int(y1)])
-
+    #Set snake head to the right x
     x1 = snake_List[-1][0]
-
     foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
     foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
 
@@ -80,11 +81,12 @@ def gameLoop():  # main function
     print("Food at: ",[foodx, foody])
     print("Snake at: ",snake_List)
     print(f'food in snake list: {[foodx, foody] in snake_List}')
-
+    
     while not game_over:
 
         while game_close:
             dis.fill(blue)
+            #time.sleep(5)
             message("You Lost", "Press R to Play Again", "Press Q to Quit", red)
             pygame.display.update()
 
@@ -115,19 +117,16 @@ def gameLoop():  # main function
 
         if x1 >= dis_width or x1 < 0 or y1 >= dis_height or y1 < 0:
             game_close = True
+            
         
         #Alghoritm for path 
         if len(path) == 0:
-            path = algorithm_dfs(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+            path = algorithm_bfs_with_dead_end_improvment(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+        if len(path) > 0:            
+            x1_change = path[-1][0]
+            y1_change = path[-1][1]
+            path.pop()
 
-        if (len(path) == 0):
-            print(f'path for food: {foodx, foody} not found!')
-            game_close = True
-
-        x1_change = path[-1][0]
-        y1_change = path[-1][1]
-        path.pop()
-        
         x1 += x1_change*snake_block
         y1 += y1_change*snake_block
         dis.fill(blue)
@@ -136,14 +135,17 @@ def gameLoop():  # main function
         snake_List.append(snake_Head)
         if len(snake_List) > Length_of_snake:
             del snake_List[0]
-
+        
         for x in snake_List[:-1]:
             if x == snake_Head:
                 game_close = True
+                #print("snake head at: ",snake_Head)
+                #print("x in snake: ",x)
+                #print("We go to: ",x1_change*snake_block,y1_change*snake_block)
 
         our_snake(snake_block, snake_List)
         pygame.display.update()
-
+        
         if x1 == foodx and y1 == foody:
             foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
             foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
@@ -157,12 +159,12 @@ def gameLoop():  # main function
             pygame.draw.rect(dis, green, [foodx, foody, snake_block, snake_block])
             pygame.display.update()
 
-            print("Food at: ",[foodx, foody])
-            print("Snake at: ", snake_List)
-            print(f'food in snake list: {[foodx, foody] in snake_List}')
+            #print("Food at: ",[foodx, foody])
+            #print("Snake at: ", snake_List)
+            #print(f'food in snake list: {[foodx, foody] in snake_List}')
 
             Length_of_snake += 1
-
+        
         clock.tick(snake_speed)
 
     pygame.quit()
