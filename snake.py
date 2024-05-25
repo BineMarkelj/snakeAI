@@ -86,7 +86,7 @@ def gameLoop():  # main function
 
         while game_close:
             dis.fill(blue)
-            time.sleep(5)
+            #time.sleep(5)
             message("You Lost", "Press R to Play Again", "Press Q to Quit", red)
             pygame.display.update()
 
