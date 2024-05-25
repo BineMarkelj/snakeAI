@@ -107,7 +107,7 @@ def gameLoop():  # main function
         
         #Alghoritm for path 
         if len(path) == 0:
-            path = algorithm_bfs(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+            path = algorithm_A_star(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
         x1_change = path[-1][0]
         y1_change = path[-1][1]
         path.pop()
