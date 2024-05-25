@@ -7,7 +7,6 @@ from algorithms import *
 # choose the algorithm to solve the game
 SOLVING_ALGORITHM = "MANUAL"
 
-
 # Initialize Pygame
 pygame.init()
 
@@ -62,6 +61,7 @@ def gameLoop():  # main function
 
     snake_List = []
     Length_of_snake = 3
+    path = []
 
     # Initialize the snake with a length of 3
     for i in range(Length_of_snake):
@@ -104,8 +104,16 @@ def gameLoop():  # main function
 
         if x1 >= dis_width or x1 < 0 or y1 >= dis_height or y1 < 0:
             game_close = True
-        x1 += x1_change
-        y1 += y1_change
+        
+        #Alghoritm for path 
+        if len(path) == 0:
+            path = algorithm_bfs(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+        x1_change = path[-1][0]
+        y1_change = path[-1][1]
+        path.pop()
+        
+        x1 += x1_change*snake_block
+        y1 += y1_change*snake_block
         dis.fill(blue)
         pygame.draw.rect(dis, green, [foodx, foody, snake_block, snake_block])
         snake_Head = [x1, y1]
