@@ -31,7 +31,7 @@ clock = pygame.time.Clock()
 
 # Define snake block and speed
 snake_block = 10
-snake_speed = 150
+snake_speed = 250
 
 # Define fonts
 large_font_style = pygame.font.SysFont(None, 75)
@@ -154,7 +154,11 @@ def gameLoop():  # main function
             while [foodx, foody] in snake_List:
                 foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
                 foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
-            
+
+            # draw the food
+            pygame.draw.rect(dis, green, [foodx, foody, snake_block, snake_block])
+            pygame.display.update()
+
             #print("Food at: ",[foodx, foody])
             #print("Snake at: ", snake_List)
             #print(f'food in snake list: {[foodx, foody] in snake_List}')

@@ -354,8 +354,82 @@ def algorithm_bfs_with_dead_end_improvment(snake_list, fruit, grid):
     return []
 
 # TODO: BINE
-def algorithm_dfs():
-    pass
+def algorithm_dfs(snake_list, fruit, grid):
+    # Convert to integers and set start
+    snake_list = [[int(x / 10), int(y / 10)] for x, y in snake_list]
+    fruit = [int(fruit[0] / 10), int(fruit[1] / 10)]
+    start = snake_list[-1]
+
+    # Make parents grid and visited grid
+    parents_grid = np.zeros((grid[0], grid[1]))
+    parents_grid = parents_grid.tolist()
+    visited_grid = [[False for _ in range(grid[1])] for _ in range(grid[0])]
+
+    # Init stack and directions
+    stack = [start]
+    directions = [[-1, 0], [0, -1], [1, 0], [0, 1]]
+
+    visited_grid[start[0]][start[1]] = True
+
+    while stack:
+        # Take first element from a queue
+        current = stack.pop()
+        visited_grid[current[0]][current[1]] = True
+
+        # Explore all 4 directions
+        for dir in directions:
+            neighbor = [current[0] + dir[0], current[1] + dir[1]]
+
+            # Check if we are within the grid
+            if 0 <= neighbor[0] < grid[0] and 0 <= neighbor[1] < grid[1]:
+
+                # Check if node was already visited
+                if visited_grid[neighbor[0]][neighbor[1]] == False:
+
+                    # Check for collision with snakes tail
+                    collision = False
+                    for snake in snake_list:
+                        if neighbor[0] == snake[0] and neighbor[1] == snake[1]:
+                            collision = True
+
+                    if collision == False:
+                        # Add neighbor to the stack and set parent in parents grid
+                        stack.append(neighbor)
+                        parents_grid[neighbor[0]][neighbor[1]] = current
+                        # Mark node as visited
+                        #visited_grid[neighbor[0]][neighbor[1]] = True
+
+        # If current node is fruit, break the search
+        if current == fruit:
+            print("break")
+            break
+
+    # Check if path was found
+    """ for x in parents_grid:
+        for parent in x:
+            if parent != 0.0:
+                if parent[0] == fruit[0]:
+                    if parent[1] == fruit[1]:
+                        print("WE FOUND IT!") """
+
+    # Make a list of needed moves to go from fruit to start - use reverse directions
+    path = []
+    while fruit != start:
+        next = parents_grid[fruit[0]][fruit[1]]
+        if next == 0.0:
+            print("error in path backtracking!")
+            break
+        if fruit[0] > next[0]:
+            path.append([1, 0])
+        if fruit[0] < next[0]:
+            path.append([-1, 0])
+        if fruit[1] > next[1]:
+            path.append([0, 1])
+        if fruit[1] < next[1]:
+            path.append([0, -1])
+        fruit = next
+
+    return path
 
 
 
