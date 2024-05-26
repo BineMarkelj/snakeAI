@@ -355,7 +355,6 @@ def algorithm_bfs_with_dead_end_improvment(snake_list, fruit, grid):
     #print("no path found")
     return []
 
-# TODO: BINE
 def algorithm_dfs(snake_list, fruit, grid):
     # Convert to integers and set start
     snake_list = [[int(x / 10), int(y / 10)] for x, y in snake_list]
@@ -371,7 +370,6 @@ def algorithm_dfs(snake_list, fruit, grid):
     stack = [start]
     directions = [[-1, 0], [0, -1], [1, 0], [0, 1]]
 
-    visited_grid[start[0]][start[1]] = True
 
     while stack:
         # Take first element from a queue
@@ -435,18 +433,178 @@ def algorithm_dfs(snake_list, fruit, grid):
 
 
 
-# TODO: BINE
-def algorithm_rta():
-    pass
+def algorithm_rta_star(snake_list, fruit, grid, second_best_rta_star):
+    depth_initial = 7
+    movement_cost = 1
+
+    snake_list = [(int(x/10), int(y/10)) for x,y in snake_list]
+    fruit = [int(fruit[0]/10),int(fruit[1]/10)]
+    start = [snake_list[-1][0], snake_list[-1][1]]
+
+    directions = [[-1,0], [0,-1], [1,0],[0,1]]
+
+    #current_second_best_positions = []
+    #current_second_best_values = 0
+
+    def lookahead_search(current, depth, snake_list_copy):
+        # globalize the current second best positions and values
+        #global current_second_best_positions
+        #global current_second_best_values
+
+        # we reached the goal !!! CAN BE UNCOMMENTED
+        if (current[0] == fruit[0] and current[1] == fruit[1]):
+            return 0, current
+
+        # we reached the final depth - return heuristic value
+        if depth == 0:
+
+            # if we reached the fruit h = 0
+            if (current[0] == fruit[0] and current[1] == fruit[1]):
+                return 0, current
+
+            h = abs(current[0] - fruit[0]) + abs(current[1] - fruit[1])
+            return h, current
+
+        # expend the current node with all possible neighbors
+        neighbors = []
+        for dir in directions:
+            neighbor = [current[0] + dir[0], current[1] + dir[1]]
+            # check if the neighbor is within the grid
+            if (0 <= neighbor[0] < grid[0] and 0 <= neighbor[1] < grid[1]):
+                collision = False
+                # check if the neighbor is not a snake or a wall
+                for snake in snake_list_copy:
+                    if neighbor[0] == snake[0] and neighbor[1] == snake[1]:
+                        collision = True
+                if not collision:
+                    neighbors.append(neighbor)
+
+        # if at top depth and only has 1 neighbor immidiatly return - only option
+        if depth == depth_initial and len(neighbors) == 1:
+            return 1, neighbors[0]
+
+        # no neighbors - this is a dead end - large penalty
+        if not neighbors:
+            return int(1e9), current
+
+        all_costs = []
+        # go one step deeper
+        for neighbor in neighbors:
+
+            # if we have already been here, take the cost from the second best array
+            if second_best_rta_star[neighbor[1]][neighbor[0]] != -1:
+                cost = second_best_rta_star[neighbor[1]][neighbor[0]] + movement_cost
+                all_costs.append((cost, neighbor))
+                #print(f'used second best array cost')
+            else:
+                snake_list_copy_copy = snake_list_copy.copy()
+                del(snake_list_copy_copy[0])
+                snake_list_copy_copy.append(neighbor)
+                cost, _ = lookahead_search(neighbor, depth - 1, snake_list_copy_copy)
+                # add the cost of the movement
+                cost += movement_cost
+                all_costs.append((cost, neighbor))
+
+        # keep track of the second best cost
+        all_costs.sort()
+        if len(all_costs) > 1 and depth == depth_initial:
+            current_second_best_positions = all_costs[1][1]
+            current_second_best_values = all_costs[1][0]
+            second_best_rta_star[start[1]][start[0]] = current_second_best_values
+
+        return all_costs[0]
+
+    min_cost = float('inf')
+    min_state = []
+
+    # copy snake list
+    snake_list_copy = snake_list.copy()
+
+    min_cost, min_state = lookahead_search(start, depth_initial, snake_list_copy)
+    #print(f'cost: {min_cost}')
+    #print(f'state: {min_state}')
+    #print(f'second best: {current_second_best_positions} {current_second_best_values}')
+
+    # update the second best array
+    #if (current_second_best_positions != []):
+    #    second_best_rta_star[current_second_best_positions[1]][current_second_best_positions[0]] = current_second_best_values
+
+    path = []
+    if min_state[0] > start[0]:
+        path.append([1,0])
+    if min_state[0] < start[0]:
+        path.append([-1,0])
+    if min_state[1] > start[1]:
+        path.append([0,1])
+    if min_state[1] < start[1]:
+        path.append([0,-1])
+
+    return path, second_best_rta_star
 
 
 
-# TODO: BINE
-def algorithm_rl():
-    pass
 
+def algorithm_rl(snake_list, foodx, foody, dis_width, dis_height, snake_block, Q):
+    # get all necesarry data at this position
 
+    # snake movement direction
+    going_up = (snake_list[-1][1] - snake_list[-2][1]) == (-snake_block)
+    going_down = (snake_list[-1][1] - snake_list[-2][1]) == snake_block
+    going_left = (snake_list[-1][0] - snake_list[-2][0]) == (-snake_block)
+    going_right = (snake_list[-1][0] - snake_list[-2][0]) == snake_block
 
-# TODO: MATJAŽ
-def algorithm_dqn():
-    pass
+    # food general direction
+    food_up = ((foody - snake_list[-1][1]) < 0)
+    food_down = ((foody - snake_list[-1][1]) > 0)
+    food_left = ((foodx - snake_list[-1][0]) < 0)
+    food_right = ((foodx - snake_list[-1][0]) > 0)
+
+    # danger directions
+    danger_up = False
+    if ((snake_list[-1][1] - 10) <= 0) or ([snake_list[-1][0], snake_list[-1][1] - 10] in snake_list):
+        danger_up = True
+
+    danger_down = False
+    if ((snake_list[-1][1] + 10) >= dis_height) or ([snake_list[-1][0], snake_list[-1][1] + 10] in snake_list):
+        danger_down = True
+
+    danger_left = False
+    if ((snake_list[-1][0] - 10) <= 0) or ([snake_list[-1][0] - 10, snake_list[-1][1]] in snake_list):
+        danger_left = True
+
+    danger_right = False
+    if ((snake_list[-1][0] + 10) >= dis_width) or ([snake_list[-1][0] + 10, snake_list[-1][1]] in snake_list):
+        danger_right = True
+
+    current_state = [going_up, going_down, going_left, going_right, food_up, food_down, food_left, food_right,
+                     danger_up, danger_down, danger_left, danger_right]
+
+    # get the index of the state to match with most likely action
+    current_state_index = 0
+    for i in range(len(current_state)):
+        increment = int(current_state[i]) * (2 ** i)  # binary
+        current_state_index += increment
+
+    # get the action from the Q-table
+    epsilon = 0.05
+    chance = random.uniform(0, 1)
+
+    action = np.argmax(Q[current_state_index])
+    # check if you did an illegal move - move into the opposite direction of the snake
+    #try_action = -1
+    #while (action == 0 and going_down) or (action == 1 and going_up) or (action == 2 and going_right) or (action == 3 and going_left):
+    #    try_action -= 1
+    #    action = np.argsort(Q[current_state_index])[try_action]
+
+    # get the direction of the action
+    path = []
+    if action == 0:
+        path.append([0, -1])
+    if action == 1:
+        path.append([0, 1])
+    if action == 2:
+        path.append([-1, 0])
+    if action == 3:
+        path.append([1, 0])
+
+    return path

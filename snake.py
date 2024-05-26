@@ -2,13 +2,24 @@ import pygame
 import time
 import random
 from algorithms import *
+<<<<<<< HEAD
 from tqdm import tqdm
 import csv
 
+=======
+import numpy as np
+import pickle
+>>>>>>> 27792eef5358c3416399714e9d3f2d0d0c5dc776
 
 
 # choose the algorithm to solve the game
-SOLVING_ALGORITHM = "MANUAL"
+SOLVING_ALGORITHM = "RL"
+
+if SOLVING_ALGORITHM == "RL":
+    # load RL model
+    rl_model_path = "./rl_model/rl_model_old_100000.pkl"
+    with open(rl_model_path, 'rb') as f:
+        model = pickle.load(f)
 
 # Initialize Pygame
 pygame.init()
@@ -58,7 +69,13 @@ def message(title, instruction1, instruction2, color):
     dis.blit(instruction_surface1, [dis_width / 6, dis_height / 2.5])
     dis.blit(instruction_surface2, [dis_width / 6, dis_height / 2.2])
 
+<<<<<<< HEAD
 def gameLoop(alg):  # main function
+=======
+
+
+def gameLoop():  # main function
+>>>>>>> 27792eef5358c3416399714e9d3f2d0d0c5dc776
     game_over = False
     game_close = False
     
@@ -87,17 +104,29 @@ def gameLoop(alg):  # main function
         foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
         foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
 
+<<<<<<< HEAD
     #print("Food at: ",[foodx, foody])
     #print("Snake at: ",snake_List)
     #print(f'food in snake list: {[foodx, foody] in snake_List}')
+=======
+    print("Food at: ",[foodx, foody])
+    print("Snake at: ",snake_List)
+    print(f'food in snake list: {[foodx, foody] in snake_List}')
+
+    # second best array used in RTA* algorithm
+    second_best_rta_star = np.full((int(dis_height / snake_block), int(dis_width / snake_block)), -1)
+
+>>>>>>> 27792eef5358c3416399714e9d3f2d0d0c5dc776
     
     while not game_over:
+        print_result = True
 
         while game_close:
             dis.fill(blue)
             #time.sleep(5)
             message("You Lost", "Press R to Play Again", "Press Q to Quit", red)
             pygame.display.update()
+<<<<<<< HEAD
             """ avg_score += Length_of_snake
             if counter < 100:
                 counter += 1
@@ -110,6 +139,14 @@ def gameLoop(alg):  # main function
             game_over = True
             game_close = False
             return Length_of_snake, timeList, pathLenghtList
+=======
+
+
+            if print_result:
+                print_result = False
+                print("Game Over, achieved score: ", Length_of_snake)
+
+>>>>>>> 27792eef5358c3416399714e9d3f2d0d0c5dc776
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_q:
@@ -141,6 +178,7 @@ def gameLoop(alg):  # main function
         
         #Alghoritm for path 
         if len(path) == 0:
+<<<<<<< HEAD
             start_time = time.time()
             #path = algorithm_bfs(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
             path = alg(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
@@ -148,9 +186,15 @@ def gameLoop(alg):  # main function
             timeList.append(end_time-start_time)
             pathLenghtList.append(len(path))
         if len(path) > 0:            
+=======
+            path = algorithm_rl(snake_List, foodx, foody, dis_width, dis_height, snake_block, model)
+        if len(path) > 0:
+>>>>>>> 27792eef5358c3416399714e9d3f2d0d0c5dc776
             x1_change = path[-1][0]
             y1_change = path[-1][1]
             path.pop()
+        else:
+            print("No path found")
 
         x1 += x1_change*snake_block
         y1 += y1_change*snake_block
@@ -189,6 +233,7 @@ def gameLoop(alg):  # main function
             #print(f'food in snake list: {[foodx, foody] in snake_List}')
 
             Length_of_snake += 1
+            second_best_rta_star.fill(-1)
         
         #clock.tick(snake_speed)
 
