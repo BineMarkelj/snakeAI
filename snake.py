@@ -11,7 +11,7 @@ SOLVING_ALGORITHM = "RL"
 
 if SOLVING_ALGORITHM == "RL":
     # load RL model
-    rl_model_path = "./rl_model/rl_model_old_100000.pkl"
+    rl_model_path = "./rl_model/rl_model.pkl"
     with open(rl_model_path, 'rb') as f:
         model = pickle.load(f)
 
