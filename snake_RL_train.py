@@ -31,7 +31,7 @@ clock = pygame.time.Clock()
 
 # Define snake block and speed
 snake_block = 10
-snake_speed = 1000
+snake_speed = 100000
 
 # Define fonts
 large_font_style = pygame.font.SysFont(None, 75)
@@ -80,7 +80,7 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
         game_over = False
         game_close = False
 
-        best_game_score_tmp = 0
+        #best_game_score_tmp = 0
 
         # display run number on screen
         dis.blit(small_font_style.render(f"Run: {iter+1}/{train_iter}", True, black), [0, 0])
@@ -122,8 +122,8 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
                 message("You Lost", "Press R to Play Again", "Press Q to Quit", red)
                 pygame.display.update()
 
-                if (best_game_score_tmp > best_game_score):
-                    best_game_score = best_game_score_tmp
+                if (Length_of_snake > best_game_score):
+                    best_game_score = Length_of_snake
                     print(f"Best score: {best_game_score} at iteration {iter+1}")
 
                 # save the model every 50 iterations
@@ -154,7 +154,7 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
 
             # danger directions
             danger_up = False
-            if ((snake_list[-1][1] - 10) <= 0) or ([snake_list[-1][0], snake_list[-1][1] - 10] in snake_list):
+            if ((snake_list[-1][1] - 10) < 0) or ([snake_list[-1][0], snake_list[-1][1] - 10] in snake_list):
                 danger_up = True
 
             danger_down = False
@@ -162,7 +162,7 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
                 danger_down = True
 
             danger_left = False
-            if ((snake_list[-1][0] - 10) <= 0) or ([snake_list[-1][0] - 10, snake_list[-1][1]] in snake_list):
+            if ((snake_list[-1][0] - 10) < 0) or ([snake_list[-1][0] - 10, snake_list[-1][1]] in snake_list):
                 danger_left = True
 
             danger_right = False
@@ -187,15 +187,6 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
             else:
                 action = np.argmax(Q[current_state_index])
 
-            # check if you did an illegal move - move into the opposite direction of the snake
-            try_action = -1
-            while (action == 0 and going_down) or (action == 1 and going_up) or (action == 2 and going_right) or (action == 3 and going_left):
-                try_action -= 1
-                if chance < epsilon:
-                    action = random.randint(0, num_actions - 1)
-                else:
-                    # second best action
-                    action = np.argsort(Q[current_state_index])[try_action]
 
             # get x1_change and y1_change based on taken action
             x1_change, y1_change = directions[possible_actions[action]]
@@ -214,16 +205,20 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
             reward = 0
             # snake ate the food
             if x1 == foodx and y1 == foody:
-                reward = 2
+                reward = 5
+            # snake moved in the opposite direction of current movement
+            elif (x1_change == -snake_block and going_right) or (x1_change == snake_block and going_left) or (y1_change == -snake_block and going_down) or (y1_change == snake_block and going_up):
+                reward = -50
+
             # snake hit the wall
-            elif x1 >= dis_width or x1 <= 0 or y1 >= dis_height or y1 <= 0:
-                reward = -20
+            elif x1 >= dis_width or x1 < 0 or y1 >= dis_height or y1 < 0:
+                reward = -30
             # snake hit itself
             elif snake_head in snake_list[:-1]:
-                reward = -20
+                reward = -30
             # snake just moved
             else:
-                reward = 0
+                reward = -0.1
 
 
             # get all the data for the position we moved to
@@ -241,7 +236,7 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
 
             # danger directions
             danger_up_next = False
-            if ((snake_list[-1][1] - 10) <= 0) or ([snake_list[-1][0], snake_list[-1][1] - 10] in snake_list):
+            if ((snake_list[-1][1] - 10) < 0) or ([snake_list[-1][0], snake_list[-1][1] - 10] in snake_list):
                 danger_up_next = True
 
             danger_down_next = False
@@ -250,7 +245,7 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
                 danger_down_next = True
 
             danger_left_next = False
-            if ((snake_list[-1][0] - 10) <= 0) or ([snake_list[-1][0] - 10, snake_list[-1][1]] in snake_list):
+            if ((snake_list[-1][0] - 10) < 0) or ([snake_list[-1][0] - 10, snake_list[-1][1]] in snake_list):
                 danger_left_next = True
 
             danger_right_next = False
@@ -269,22 +264,10 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
 
             # update with Bellman equation for Q learning
             action_next = np.argmax(Q[current_state_index_next])
-            # check if you did an illegal move - move into the opposite direction of the snake
-            try_action = -1
-            while (action_next == 0 and going_down) or (action_next == 1 and going_up) or (action_next == 2 and going_right) or (
-                    action_next == 3 and going_left):
-                try_action -= 1
-                if chance < epsilon:
-                    action_next = random.randint(0, num_actions - 1)
-                else:
-                    # second best action
-                    action_next = np.argsort(Q[current_state_index])[try_action]
-
             Q[current_state_index][action] = Q[current_state_index][action] + lr * (reward + discount * Q[current_state_index_next][action_next] - Q[current_state_index][action])
 
 
-
-            if x1 >= dis_width or x1 <= 0 or y1 >= dis_height or y1 <= 0:
+            if x1 >= dis_width or x1 < 0 or y1 >= dis_height or y1 < 0:
                 game_close = True
 
             for x in snake_list[:-1]:
@@ -295,7 +278,7 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
             pygame.display.update()
 
             if x1 == foodx and y1 == foody:
-                best_game_score_tmp += 1
+                #best_game_score_tmp += 1
 
                 foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
                 foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
@@ -332,11 +315,11 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
 
 
 
-TRAIN_ITERATIONS = 100000
+TRAIN_ITERATIONS = 1000000
 train_model_path = "./rl_model/rl_model.pkl"
 
 epsilon = 0.1
 discount = 0.9
-lr = 0.1
+lr = 0.15
 
 gameLoop(train_iter=TRAIN_ITERATIONS, model_path=train_model_path, epsilon=epsilon, discount=discount, lr=lr)
