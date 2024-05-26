@@ -2,10 +2,12 @@ import pygame
 import time
 import random
 from algorithms import *
+import numpy as np
 
 
 # choose the algorithm to solve the game
 SOLVING_ALGORITHM = "MANUAL"
+
 
 # Initialize Pygame
 pygame.init()
@@ -51,6 +53,8 @@ def message(title, instruction1, instruction2, color):
     dis.blit(instruction_surface1, [dis_width / 6, dis_height / 2.5])
     dis.blit(instruction_surface2, [dis_width / 6, dis_height / 2.2])
 
+
+
 def gameLoop():  # main function
     game_over = False
     game_close = False
@@ -81,6 +85,10 @@ def gameLoop():  # main function
     print("Food at: ",[foodx, foody])
     print("Snake at: ",snake_List)
     print(f'food in snake list: {[foodx, foody] in snake_List}')
+
+    # second best array used in RTA* algorithm
+    second_best_rta_star = np.full((int(dis_height / snake_block), int(dis_width / snake_block)), -1)
+
     
     while not game_over:
 
@@ -121,11 +129,14 @@ def gameLoop():  # main function
         
         #Alghoritm for path 
         if len(path) == 0:
-            path = algorithm_bfs_with_dead_end_improvment(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+            #global second_best_rta_star
+            path, second_best_rta_star = algorithm_rta_star(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)], second_best_rta_star)
         if len(path) > 0:            
             x1_change = path[-1][0]
             y1_change = path[-1][1]
             path.pop()
+        else:
+            print("No path found")
 
         x1 += x1_change*snake_block
         y1 += y1_change*snake_block
@@ -164,6 +175,7 @@ def gameLoop():  # main function
             #print(f'food in snake list: {[foodx, foody] in snake_List}')
 
             Length_of_snake += 1
+            second_best_rta_star.fill(-1)
         
         clock.tick(snake_speed)
 
