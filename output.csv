@@ -1,0 +1,33 @@
+Algorithm: RL - 1M
+avg_lenght: 69.91
+avg_path lenghts: 36.24053547446254
+avg_time: 0.00039938570193569293
+Algorithm: RL
+avg_lenght: 38.34
+avg_path lenghts: 33.458840991755594
+avg_time: 0.00032896217207847525
+Algorithm: RTA* - 1
+avg_lenght: 86.6
+avg_path lenghts: 36.537257596006945
+avg_time: 0.0008130721715993171
+Algorithm: RTA* - 3
+avg_lenght: 63.78
+avg_path lenghts: 33.4183950666888
+avg_time: 0.0031036822709298462
+Algorithm: random
+avg_lenght: 5.54
+avg_path lenghts: 4264.8585
+avg_time: 0.010258674144744873
+Algorithm: RTA* - 5
+avg_lenght: 77.19
+avg_path lenghts: 34.044712825712594
+avg_time: 0.02369989320520847
+Algorithm: best-first
+avg_lenght: 66.66
+avg_path lenghts: 34.38084233087813
+avg_time: 0.0003867752778248535
+
+Algorithm: RTA*
+avg_lenght: 90.87
+avg_path lenghts: 34.75049966110159
+avg_time: 0.1909671953712333
