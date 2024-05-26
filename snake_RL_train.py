@@ -56,8 +56,6 @@ def message(title, instruction1, instruction2, color):
 
 
 
-
-
 def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1):  # main function
 
     possible_actions = ['UP', 'DOWN', 'LEFT', 'RIGHT']
@@ -66,16 +64,13 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
     num_actions = len(possible_actions)
     num_states = 2 ** 12
 
+    # initialize Q table
     Q = np.zeros((num_states, num_actions))
-
-    #if os.stat(model_path).st_size != 0:
-    #    Q = pickle.load(model)
 
     best_game_score = 0
 
     for iter in range(train_iter):
         #print(f"Training iteration: {iter+1}/{train_iter}")
-        # Initialize variables
 
         game_over = False
         game_close = False
@@ -118,7 +113,7 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
 
             while game_close:
                 dis.fill(blue)
-                # time.sleep(5)
+
                 message("You Lost", "Press R to Play Again", "Press Q to Quit", red)
                 pygame.display.update()
 
@@ -139,7 +134,6 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
 
 
             # get all necesarry data at this position
-
             # snake movement direction
             going_up = (snake_list[-1][1] - snake_list[-2][1]) == (-snake_block)
             going_down = (snake_list[-1][1] - snake_list[-2][1]) == (snake_block)
@@ -267,9 +261,11 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
             Q[current_state_index][action] = Q[current_state_index][action] + lr * (reward + discount * Q[current_state_index_next][action_next] - Q[current_state_index][action])
 
 
+            # out of bounds
             if x1 >= dis_width or x1 < 0 or y1 >= dis_height or y1 < 0:
                 game_close = True
 
+            # snake hit itself
             for x in snake_list[:-1]:
                 if x == snake_head:
                     game_close = True
@@ -305,7 +301,7 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
         if iter == (train_iter - 1):
             with open(model_path, 'wb') as model:
                 pickle.dump(Q, model)
-            #print("Model saved")
+            print("Model saved")
 
         continue
         #pygame.quit()
