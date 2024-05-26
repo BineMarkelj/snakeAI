@@ -536,13 +536,59 @@ def algorithm_rta_star(snake_list, fruit, grid, second_best_rta_star):
 
 
 
+def algorithm_rl(snake_list, foodx, foody, dis_width, dis_height, snake_block, Q):
+    # get all necesarry data at this position
 
-# TODO: BINE
-def algorithm_rl():
-    pass
+    # snake movement direction
+    going_up = (snake_list[-1][1] - snake_list[-2][1]) == (-snake_block)
+    going_down = (snake_list[-1][1] - snake_list[-2][1]) == snake_block
+    going_left = (snake_list[-1][0] - snake_list[-2][0]) == (-snake_block)
+    going_right = (snake_list[-1][0] - snake_list[-2][0]) == snake_block
 
+    # food general direction
+    food_up = ((foody - snake_list[-1][1]) < 0)
+    food_down = ((foody - snake_list[-1][1]) > 0)
+    food_left = ((foodx - snake_list[-1][0]) < 0)
+    food_right = ((foodx - snake_list[-1][0]) > 0)
 
+    # danger directions
+    danger_up = False
+    if ((snake_list[-1][1] - 10) <= 0) or ([snake_list[-1][0], snake_list[-1][1] - 10] in snake_list):
+        danger_up = True
 
-# TODO: MATJAŽ
-def algorithm_dqn():
-    pass
+    danger_down = False
+    if ((snake_list[-1][1] + 10) >= dis_height) or ([snake_list[-1][0], snake_list[-1][1] + 10] in snake_list):
+        danger_down = True
+
+    danger_left = False
+    if ((snake_list[-1][0] - 10) <= 0) or ([snake_list[-1][0] - 10, snake_list[-1][1]] in snake_list):
+        danger_left = True
+
+    danger_right = False
+    if ((snake_list[-1][0] + 10) >= dis_width) or ([snake_list[-1][0] + 10, snake_list[-1][1]] in snake_list):
+        danger_right = True
+
+    current_state = [going_up, going_down, going_left, going_right, food_up, food_down, food_left, food_right,
+                     danger_up, danger_down, danger_left, danger_right]
+
+    # get the index of the state to match with most likely action
+    current_state_index = 0
+    for i in range(len(current_state)):
+        increment = int(current_state[i]) * (2 ** i)  # binary
+        current_state_index += increment
+
+    # get the action from the Q-table
+    action = np.argmax(Q[current_state_index])
+
+    # get the direction of the action
+    path = []
+    if action == 0:
+        path.append([0, -1])
+    if action == 1:
+        path.append([0, 1])
+    if action == 2:
+        path.append([-1, 0])
+    if action == 3:
+        path.append([1, 0])
+
+    return path

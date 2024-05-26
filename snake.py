@@ -3,11 +3,17 @@ import time
 import random
 from algorithms import *
 import numpy as np
+import pickle
 
 
 # choose the algorithm to solve the game
-SOLVING_ALGORITHM = "MANUAL"
+SOLVING_ALGORITHM = "RL"
 
+if SOLVING_ALGORITHM == "RL":
+    # load RL model
+    rl_model_path = "./rl_model/rl_model.pkl"
+    with open(rl_model_path, 'rb') as f:
+        model = pickle.load(f)
 
 # Initialize Pygame
 pygame.init()
@@ -129,9 +135,8 @@ def gameLoop():  # main function
         
         #Alghoritm for path 
         if len(path) == 0:
-            #global second_best_rta_star
-            path, second_best_rta_star = algorithm_rta_star(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)], second_best_rta_star)
-        if len(path) > 0:            
+            path = algorithm_rl(snake_List, foodx, foody, dis_width, dis_height, snake_block, model)
+        if len(path) > 0:
             x1_change = path[-1][0]
             y1_change = path[-1][1]
             path.pop()
