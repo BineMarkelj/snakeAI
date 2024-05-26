@@ -8,50 +8,6 @@ from tqdm import tqdm
 import csv
 
 
-
-# choose the algorithm to solve the game
-""" SOLVING_ALGORITHM = "RL"
-
-if SOLVING_ALGORITHM == "RL":
-    # load RL model """
-rl_model_path = "./rl_model/rl_model_old_100000.pkl"
-with open(rl_model_path, 'rb') as f:
-    model = pickle.load(f)
-
-# Initialize Pygame
-pygame.init()
-
-# Define colors
-white = (255, 255, 255)
-yellow = (255, 255, 102)
-black = (0, 0, 0)
-red = (213, 50, 80)
-green = (0, 255, 0)
-blue = (50, 153, 213)
-
-# Define screen dimensions
-dis_width = 600
-dis_height = 400
-
-# Set up display
-dis = pygame.display.set_mode((dis_width, dis_height))
-pygame.display.set_caption('Snake Game')
-
-# Define clock
-clock = pygame.time.Clock()
-
-# Define snake block and speed
-snake_block = 10
-snake_speed = 25
-
-#Setup counter for evaluation
-avg_score = 0
-counter = 0
-
-# Define fonts
-large_font_style = pygame.font.SysFont(None, 75)
-small_font_style = pygame.font.SysFont(None, 35)
-
 def our_snake(snake_block, snake_list):
     pygame.draw.rect(dis, red, [snake_list[-1][0], snake_list[-1][1], snake_block, snake_block])
     for x in snake_list[1:-1]:
@@ -102,10 +58,6 @@ def gameLoop(alg):  # main function
         foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
         foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
 
-    #print("Food at: ",[foodx, foody])
-    #print("Snake at: ",snake_List)
-    #print(f'food in snake list: {[foodx, foody] in snake_List}')
-
     # second best array used in RTA* algorithm
     second_best_rta_star = np.full((int(dis_height / snake_block), int(dis_width / snake_block)), -1)
     path_len = 0
@@ -118,26 +70,18 @@ def gameLoop(alg):  # main function
             dis.fill(blue)
             #time.sleep(5)
             message("You Lost", "Press R to Play Again", "Press Q to Quit", red)
-            pygame.display.update()
-            """ avg_score += Length_of_snake
-            if counter < 100:
-                counter += 1
-                game_over = False
-                print(counter)
-                gameLoop()
-            else:
-                print(avg_score/100) """
-            
+            pygame.display.update()       
             game_over = True
             game_close = False
             return Length_of_snake, timeList, pathLenghtList
-            for event in pygame.event.get():
+            #Skipped since we are automaticly restarting the game
+            """ for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_q:
                         game_over = True
                         game_close = False
                     if event.key == pygame.K_r:
-                        gameLoop()
+                        gameLoop() """
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -189,9 +133,6 @@ def gameLoop(alg):  # main function
         for x in snake_List[:-1]:
             if x == snake_Head:
                 game_close = True
-                #print("snake head at: ",snake_Head)
-                #print("x in snake: ",x)
-                #print("We go to: ",x1_change*snake_block,y1_change*snake_block)
 
         our_snake(snake_block, snake_List)
         pygame.display.update()
@@ -220,22 +161,17 @@ def gameLoop(alg):  # main function
             pygame.draw.rect(dis, green, [foodx, foody, snake_block, snake_block])
             pygame.display.update()
 
-            #print("Food at: ",[foodx, foody])
-            #print("Snake at: ", snake_List)
-            #print(f'food in snake list: {[foodx, foody] in snake_List}')
-
             Length_of_snake += 1
             second_best_rta_star.fill(-1)
-        
-        clock.tick(snake_speed)
+
+        #Skip run the game as fast as possible
+        #clock.tick(snake_speed)
 
     pygame.quit()
+    #Don't quit the whole script
     #quit()
 
-
-
-# choose the algorithm to solve the game
-#"zigzag": algorithm_zigzag,
+#Implemented algorithms
 SOLVING_ALGORITHM = {   "RL": "RL", 
                         "RTA*": algorithm_rta_star,
                         "bfs with dead ends": algorithm_bfs_with_dead_end_improvment,
@@ -249,6 +185,11 @@ SOLVING_ALGORITHM = {   "RL": "RL",
 
 runs = 100    
 for alg in SOLVING_ALGORITHM:
+    #Chose the model for RL algorithm
+    rl_model_path = "./rl_model/rl_model_old_100000.pkl"
+    with open(rl_model_path, 'rb') as f:
+        model = pickle.load(f)
+
     avg_lenght = 0
     avg_time = []
     avg_path_len = []
