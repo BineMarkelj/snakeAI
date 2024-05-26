@@ -3,7 +3,146 @@ import numpy as np
 from collections import deque
 import heapq
 import time
+import random
 
+
+def rbfs(snake_list, fruit, grid, f_limit=float('inf')):
+    #Convert to integers and set start
+    snake_list = [(int(x/10), int(y/10)) for x,y in snake_list]
+    fruit = [int(fruit[0]/10),int(fruit[1]/10)]
+    start = [snake_list[-1][0], snake_list[-1][1]]
+    directions = [[-1,0], [0,-1], [1,0],[0,1]]
+
+    def rbfs_rec(node, goal, node_cost, f_limit):
+        print(node,goal)
+        if node == goal:
+            return [node], 0  # Path found, return path and cost
+
+        successors = []
+        for direction in directions:
+            new_pos = (node[0] + direction[0], node[1] + direction[1])
+            if 0 <= new_pos[0] < grid[0] and 0 <= new_pos[1] < grid[1] and new_pos not in snake_list:
+                g = node_cost[tuple(node)] + 1
+                h = abs(new_pos[0] - fruit[0]) + abs(new_pos[1] - fruit[1]) 
+                f = max(g + h, f_limit)
+                successors.append((f, new_pos))
+                node_cost[new_pos] = g 
+
+        if not successors:
+            return None, float('inf')
+
+        successors.sort()
+        best_successor = successors[0]
+
+        while best_successor[0] <= f_limit:
+            alternative = successors[1][0] if len(successors) > 1 else float('inf')
+            result, best_successor[0] = rbfs_rec(best_successor[1], goal, node_cost, min(f_limit, alternative))
+            if result:
+                return [node] + result, best_successor[0]
+            successors.sort()
+            best_successor = successors[0]
+
+        return None, float('inf')
+
+    node_cost = {tuple(start): 0}
+    path, _ = rbfs_rec(start, fruit, node_cost, f_limit)
+    return path
+
+def algorithm_zigzag(snake_list, fruit, grid):
+    
+    snake_list = [(int(x/10), int(y/10)) for x,y in snake_list]
+    fruit = [int(fruit[0]/10),int(fruit[1]/10)]
+    start = snake_list[-1]
+    directions = [[-1,0], [0,-1], [1,0],[0,1]]
+    dirx = 0
+    diry = 0
+    if snake_list[-1][0] > snake_list[-2][0]:
+        dirx = 1
+    elif snake_list[-1][0] < snake_list[-2][0]:
+        dirx = -1
+
+    if snake_list[-1][1] > snake_list[-2][1]:
+        diry = 1
+    elif snake_list[-1][1] < snake_list[-2][1]:
+        diry = -1
+
+    #print("dir: ",dirx,diry)
+    #Right
+    if dirx == 1:
+        if start[0] + 1 < grid[0]:
+            return [[1,0]]
+        else:
+            return[[-1,0],[0,-1]]
+    #left
+    if dirx == -1:
+        if start[0] - 1 > 0:
+            return [[-1,0]]
+        elif start[1] - 1 > 0:
+            return [[1,0],[0,-1]]
+        else:
+            return [[0,1],[-1,0]]
+    
+    if diry == 1:
+        if start[1] + 1 < grid[1]:
+            #print("Go down")
+            return [[0,1]]
+        else:
+            #print("go right")
+            return [[1,0]]
+        
+
+    return [[0,0]]
+
+def algorithm_random(snake_list, fruit, grid):
+
+    snake_list = [(int(x/10), int(y/10)) for x,y in snake_list]
+    fruit = [int(fruit[0]/10),int(fruit[1]/10)]
+    start = snake_list[-1]
+    directions = [[-1,0], [0,-1], [1,0],[0,1]]
+    for _ in range(32):
+        dir = random.choice(directions)
+        x = start[0] + dir[0]
+        y = start[1] + dir[1]
+
+        if x >= 0 and x < grid[0]:
+            if y >= 0 and y < grid[1]:
+                collision = False
+                for snake in snake_list:
+                    if x == snake[0]:
+                        if y == snake[1]:
+                            collision = True
+                if collision == False:
+                    return [dir]
+
+    return [[0,0]]
+
+def algorithm_best_first(snake_list, fruit, grid):
+
+    snake_list = [(int(x/10), int(y/10)) for x,y in snake_list]
+    fruit = [int(fruit[0]/10),int(fruit[1]/10)]
+    start = snake_list[-1]
+    directions = [[-1,0], [0,-1], [1,0],[0,1]]
+    best_move = []
+    best_score = 1000
+    for dir in directions:
+        x = start[0] + dir[0]
+        y = start[1] + dir[1]
+
+        if x >= 0 and x < grid[0]:
+            if y >= 0 and y < grid[1]:
+                collision = False
+                for snake in snake_list:
+                    if x == snake[0]:
+                        if y == snake[1]:
+                            collision = True
+                if collision == False:
+                    if abs(fruit[0] - x) + abs(fruit[1] - y) < best_score:
+                        best_move = dir
+                        best_score = abs(fruit[0] - x) + abs(fruit[1] - y)
+
+    if len(best_move) > 0:
+        return [best_move]
+    return [[0,0]]
 
 def algorithm_A_star(snake_list, fruit, grid):
     #Convert to integers and set start
