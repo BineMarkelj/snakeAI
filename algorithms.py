@@ -444,14 +444,14 @@ def algorithm_rta_star(snake_list, fruit, grid, second_best_rta_star):
     #current_second_best_positions = []
     #current_second_best_values = 0
 
-    def lookahead_search(current, depth):
+    def lookahead_search(current, depth, snake_list_copy):
         # globalize the current second best positions and values
         #global current_second_best_positions
         #global current_second_best_values
 
         # we reached the goal !!! CAN BE UNCOMMENTED
-        #if (current[0] == fruit[0] and current[1] == fruit[1]):
-        #    return 0, current
+        if (current[0] == fruit[0] and current[1] == fruit[1]):
+            return 0, current
 
         # we reached the final depth - return heuristic value
         if depth == 0:
@@ -471,7 +471,7 @@ def algorithm_rta_star(snake_list, fruit, grid, second_best_rta_star):
             if (0 <= neighbor[0] < grid[0] and 0 <= neighbor[1] < grid[1]):
                 collision = False
                 # check if the neighbor is not a snake or a wall
-                for snake in snake_list:
+                for snake in snake_list_copy:
                     if neighbor[0] == snake[0] and neighbor[1] == snake[1]:
                         collision = True
                 if not collision:
@@ -495,7 +495,10 @@ def algorithm_rta_star(snake_list, fruit, grid, second_best_rta_star):
                 all_costs.append((cost, neighbor))
                 #print(f'used second best array cost')
             else:
-                cost, _ = lookahead_search(neighbor, depth - 1)
+                snake_list_copy_copy = snake_list_copy.copy()
+                del(snake_list_copy_copy[0])
+                snake_list_copy_copy.append(neighbor)
+                cost, _ = lookahead_search(neighbor, depth - 1, snake_list_copy_copy)
                 # add the cost of the movement
                 cost += movement_cost
                 all_costs.append((cost, neighbor))
@@ -512,7 +515,10 @@ def algorithm_rta_star(snake_list, fruit, grid, second_best_rta_star):
     min_cost = float('inf')
     min_state = []
 
-    min_cost, min_state = lookahead_search(start, depth_initial)
+    # copy snake list
+    snake_list_copy = snake_list.copy()
+
+    min_cost, min_state = lookahead_search(start, depth_initial, snake_list_copy)
     #print(f'cost: {min_cost}')
     #print(f'state: {min_state}')
     #print(f'second best: {current_second_best_positions} {current_second_best_values}')
@@ -578,7 +584,15 @@ def algorithm_rl(snake_list, foodx, foody, dis_width, dis_height, snake_block, Q
         current_state_index += increment
 
     # get the action from the Q-table
+    epsilon = 0.05
+    chance = random.uniform(0, 1)
+
     action = np.argmax(Q[current_state_index])
+    # check if you did an illegal move - move into the opposite direction of the snake
+    #try_action = -1
+    #while (action == 0 and going_down) or (action == 1 and going_up) or (action == 2 and going_right) or (action == 3 and going_left):
+    #    try_action -= 1
+    #    action = np.argsort(Q[current_state_index])[try_action]
 
     # get the direction of the action
     path = []

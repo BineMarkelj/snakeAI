@@ -11,7 +11,7 @@ SOLVING_ALGORITHM = "RL"
 
 if SOLVING_ALGORITHM == "RL":
     # load RL model
-    rl_model_path = "./rl_model/rl_model.pkl"
+    rl_model_path = "./rl_model/rl_model_old_100000.pkl"
     with open(rl_model_path, 'rb') as f:
         model = pickle.load(f)
 
@@ -97,12 +97,18 @@ def gameLoop():  # main function
 
     
     while not game_over:
+        print_result = True
 
         while game_close:
             dis.fill(blue)
             #time.sleep(5)
             message("You Lost", "Press R to Play Again", "Press Q to Quit", red)
             pygame.display.update()
+
+
+            if print_result:
+                print_result = False
+                print("Game Over, achieved score: ", Length_of_snake)
 
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:

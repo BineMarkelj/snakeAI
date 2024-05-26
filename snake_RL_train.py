@@ -31,7 +31,7 @@ clock = pygame.time.Clock()
 
 # Define snake block and speed
 snake_block = 10
-snake_speed = 250
+snake_speed = 1000
 
 # Define fonts
 large_font_style = pygame.font.SysFont(None, 75)
@@ -71,12 +71,16 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
     #if os.stat(model_path).st_size != 0:
     #    Q = pickle.load(model)
 
+    best_game_score = 0
+
     for iter in range(train_iter):
-        print(f"Training iteration: {iter+1}/{train_iter}")
+        #print(f"Training iteration: {iter+1}/{train_iter}")
         # Initialize variables
 
         game_over = False
         game_close = False
+
+        best_game_score_tmp = 0
 
         # display run number on screen
         dis.blit(small_font_style.render(f"Run: {iter+1}/{train_iter}", True, black), [0, 0])
@@ -118,13 +122,17 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
                 message("You Lost", "Press R to Play Again", "Press Q to Quit", red)
                 pygame.display.update()
 
+                if (best_game_score_tmp > best_game_score):
+                    best_game_score = best_game_score_tmp
+                    print(f"Best score: {best_game_score} at iteration {iter+1}")
+
                 # save the model every 50 iterations
                 if (iter+1) % 500 == 0:
                     # name it with the iteration number
                     model_path_iter = f"./rl_model/rl_model_{iter+1}.pkl"
                     with open(model_path_iter, 'wb') as model:
                         pickle.dump(Q, model)
-                    print(f"Model saved at iteration {iter+1}")
+                    #print(f"Model saved at iteration {iter+1}")
 
                 game_close = False
                 game_over = True
@@ -134,7 +142,7 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
 
             # snake movement direction
             going_up = (snake_list[-1][1] - snake_list[-2][1]) == (-snake_block)
-            going_down = (snake_list[-1][1] - snake_list[-2][1]) == snake_block
+            going_down = (snake_list[-1][1] - snake_list[-2][1]) == (snake_block)
             going_left = (snake_list[-1][0] - snake_list[-2][0]) == (-snake_block)
             going_right = (snake_list[-1][0] - snake_list[-2][0]) == snake_block
 
@@ -179,6 +187,16 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
             else:
                 action = np.argmax(Q[current_state_index])
 
+            # check if you did an illegal move - move into the opposite direction of the snake
+            try_action = -1
+            while (action == 0 and going_down) or (action == 1 and going_up) or (action == 2 and going_right) or (action == 3 and going_left):
+                try_action -= 1
+                if chance < epsilon:
+                    action = random.randint(0, num_actions - 1)
+                else:
+                    # second best action
+                    action = np.argsort(Q[current_state_index])[try_action]
+
             # get x1_change and y1_change based on taken action
             x1_change, y1_change = directions[possible_actions[action]]
 
@@ -196,22 +214,22 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
             reward = 0
             # snake ate the food
             if x1 == foodx and y1 == foody:
-                reward = 3
+                reward = 2
             # snake hit the wall
-            elif x1 >= dis_width or x1 < 0 or y1 >= dis_height or y1 < 0:
+            elif x1 >= dis_width or x1 <= 0 or y1 >= dis_height or y1 <= 0:
                 reward = -20
             # snake hit itself
             elif snake_head in snake_list[:-1]:
                 reward = -20
             # snake just moved
             else:
-                reward = -0.05
+                reward = 0
 
 
             # get all the data for the position we moved to
             # snake movement direction
             going_up_next = (snake_list[-1][1] - snake_list[-2][1]) == (-snake_block)
-            going_down_next = (snake_list[-1][1] - snake_list[-2][1]) == snake_block
+            going_down_next = (snake_list[-1][1] - snake_list[-2][1]) == (snake_block)
             going_left_next = (snake_list[-1][0] - snake_list[-2][0]) == (-snake_block)
             going_right_next = (snake_list[-1][0] - snake_list[-2][0]) == snake_block
 
@@ -251,11 +269,22 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
 
             # update with Bellman equation for Q learning
             action_next = np.argmax(Q[current_state_index_next])
+            # check if you did an illegal move - move into the opposite direction of the snake
+            try_action = -1
+            while (action_next == 0 and going_down) or (action_next == 1 and going_up) or (action_next == 2 and going_right) or (
+                    action_next == 3 and going_left):
+                try_action -= 1
+                if chance < epsilon:
+                    action_next = random.randint(0, num_actions - 1)
+                else:
+                    # second best action
+                    action_next = np.argsort(Q[current_state_index])[try_action]
+
             Q[current_state_index][action] = Q[current_state_index][action] + lr * (reward + discount * Q[current_state_index_next][action_next] - Q[current_state_index][action])
 
 
 
-            if x1 >= dis_width or x1 < 0 or y1 >= dis_height or y1 < 0:
+            if x1 >= dis_width or x1 <= 0 or y1 >= dis_height or y1 <= 0:
                 game_close = True
 
             for x in snake_list[:-1]:
@@ -266,6 +295,8 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
             pygame.display.update()
 
             if x1 == foodx and y1 == foody:
+                best_game_score_tmp += 1
+
                 foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
                 foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
 
@@ -291,7 +322,7 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
         if iter == (train_iter - 1):
             with open(model_path, 'wb') as model:
                 pickle.dump(Q, model)
-            print("Model saved")
+            #print("Model saved")
 
         continue
         #pygame.quit()
@@ -301,7 +332,7 @@ def gameLoop(train_iter=1000, model_path="./", epsilon=0.1, discount=0.9, lr=0.1
 
 
 
-TRAIN_ITERATIONS = 1000
+TRAIN_ITERATIONS = 100000
 train_model_path = "./rl_model/rl_model.pkl"
 
 epsilon = 0.1
