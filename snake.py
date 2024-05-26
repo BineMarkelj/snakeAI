@@ -31,7 +31,7 @@ clock = pygame.time.Clock()
 
 # Define snake block and speed
 snake_block = 10
-snake_speed = 500
+snake_speed = 150
 
 # Define fonts
 large_font_style = pygame.font.SysFont(None, 75)
@@ -121,7 +121,7 @@ def gameLoop():  # main function
         
         #Alghoritm for path 
         if len(path) == 0:
-            path = algorithm_bfs_with_dead_end_improvment(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+            path = algorithm_zigzag(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
         if len(path) > 0:            
             x1_change = path[-1][0]
             y1_change = path[-1][1]
