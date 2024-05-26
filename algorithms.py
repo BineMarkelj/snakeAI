@@ -14,7 +14,7 @@ def rbfs(snake_list, fruit, grid, f_limit=float('inf')):
     directions = [[-1,0], [0,-1], [1,0],[0,1]]
 
     def rbfs_rec(node, goal, node_cost, f_limit):
-        print(node,goal)
+        ##print(node,goal)
         if node == goal:
             return [node], 0  # Path found, return path and cost
 
@@ -66,7 +66,7 @@ def algorithm_zigzag(snake_list, fruit, grid):
     elif snake_list[-1][1] < snake_list[-2][1]:
         diry = -1
 
-    #print("dir: ",dirx,diry)
+    ###print("dir: ",dirx,diry)
     #Right
     if dirx == 1:
         if start[0] + 1 < grid[0]:
@@ -84,10 +84,10 @@ def algorithm_zigzag(snake_list, fruit, grid):
     
     if diry == 1:
         if start[1] + 1 < grid[1]:
-            #print("Go down")
+            ###print("Go down")
             return [[0,1]]
         else:
-            #print("go right")
+            ##print("go right")
             return [[1,0]]
         
 
@@ -167,6 +167,8 @@ def algorithm_A_star(snake_list, fruit, grid):
     #Init first node in the grid (start node)
     i = start[0]
     j = start[1]
+    if i >= grid[0] or j >= grid[1]:
+        return []
     cell_details[i][j].f = 0
     cell_details[i][j].g = 0
     cell_details[i][j].h = 0
@@ -236,7 +238,7 @@ def algorithm_A_star(snake_list, fruit, grid):
     while fruit != start:
         next = [cell_details[fruit[0]][fruit[1]].parent_i, cell_details[fruit[0]][fruit[1]].parent_j]
         if next == [0,0]:
-            print("Error in backtracking the path")    
+            #print("Error in backtracking the path")    
             break
         if fruit[0] > next[0]:
             path.append([1,0])
@@ -255,15 +257,15 @@ def algorithm_A_star_with_dead_end_improvment(snake_list, fruit, grid):
     if len(path) > 0:
         return path
     
-    #print("snake ass",snake_list[0])
-    #print("grid size: ",grid)
+    ##print("snake ass",snake_list[0])
+    ##print("grid size: ",grid)
 
     path = algorithm_A_star(snake_list[1:], snake_list[0], grid)
     if len(path) > 0:
-        #print("new path")
+        ##print("new path")
         return [path[0]]
         
-    print("no path found")
+    #print("no path found")
     return []
 
 def algorithm_bfs(snake_list, fruit, grid):
@@ -307,7 +309,7 @@ def algorithm_bfs(snake_list, fruit, grid):
                         visited_grid[neighbor[0]][neighbor[1]] = True
         #If current node is fruit, break the search
         if current == fruit:
-            #print("break")
+            ##print("break")
             break
 
 
@@ -317,14 +319,14 @@ def algorithm_bfs(snake_list, fruit, grid):
             if parent != 0.0:
                 if parent[0] == fruit[0]:
                     if parent[1] == fruit[1]:
-                        print("WE FOUND IT!") """
+                        #print("WE FOUND IT!") """
     
     #Make a list of needed moves to go from fruit to start - use reverse directions
     path = []
     while fruit != start:
         next = parents_grid[fruit[0]][fruit[1]]
         if next == 0.0:
-            print("error in path backtracking!")
+            #print("error in path backtracking!")
             break
         if fruit[0] > next[0]:
             path.append([1,0])
@@ -345,12 +347,12 @@ def algorithm_bfs_with_dead_end_improvment(snake_list, fruit, grid):
     
     path = algorithm_bfs(snake_list[1:], snake_list[0], grid)
     """ if len(path) == 0:
-        print("NO PATH!")
+        #print("NO PATH!")
         time.sleep(10) """
     if len(path) > 0:
-        print("new path found")
+        #print("new path found")
         return [path[0]]
-    print("no path found")
+    #print("no path found")
     return []
 
 # TODO: BINE
@@ -401,7 +403,7 @@ def algorithm_dfs(snake_list, fruit, grid):
 
         # If current node is fruit, break the search
         if current == fruit:
-            print("break")
+            #print("break")
             break
 
     # Check if path was found
@@ -410,14 +412,14 @@ def algorithm_dfs(snake_list, fruit, grid):
             if parent != 0.0:
                 if parent[0] == fruit[0]:
                     if parent[1] == fruit[1]:
-                        print("WE FOUND IT!") """
+                        #print("WE FOUND IT!") """
 
     # Make a list of needed moves to go from fruit to start - use reverse directions
     path = []
     while fruit != start:
         next = parents_grid[fruit[0]][fruit[1]]
         if next == 0.0:
-            print("error in path backtracking!")
+            #print("error in path backtracking!")
             break
         if fruit[0] > next[0]:
             path.append([1, 0])

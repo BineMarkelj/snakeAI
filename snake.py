@@ -2,6 +2,9 @@ import pygame
 import time
 import random
 from algorithms import *
+from tqdm import tqdm
+import csv
+
 
 
 # choose the algorithm to solve the game
@@ -31,7 +34,11 @@ clock = pygame.time.Clock()
 
 # Define snake block and speed
 snake_block = 10
-snake_speed = 250
+snake_speed = 10000
+
+#Setup counter for evaluation
+avg_score = 0
+counter = 0
 
 # Define fonts
 large_font_style = pygame.font.SysFont(None, 75)
@@ -51,7 +58,7 @@ def message(title, instruction1, instruction2, color):
     dis.blit(instruction_surface1, [dis_width / 6, dis_height / 2.5])
     dis.blit(instruction_surface2, [dis_width / 6, dis_height / 2.2])
 
-def gameLoop():  # main function
+def gameLoop(alg):  # main function
     game_over = False
     game_close = False
     
@@ -61,6 +68,8 @@ def gameLoop():  # main function
     snake_List = []
     Length_of_snake = 3
     path = []
+    timeList = []
+    pathLenghtList = []
 
     x1 = dis_width / 2
     y1 = dis_height / 2
@@ -78,9 +87,9 @@ def gameLoop():  # main function
         foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
         foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
 
-    print("Food at: ",[foodx, foody])
-    print("Snake at: ",snake_List)
-    print(f'food in snake list: {[foodx, foody] in snake_List}')
+    #print("Food at: ",[foodx, foody])
+    #print("Snake at: ",snake_List)
+    #print(f'food in snake list: {[foodx, foody] in snake_List}')
     
     while not game_over:
 
@@ -89,7 +98,18 @@ def gameLoop():  # main function
             #time.sleep(5)
             message("You Lost", "Press R to Play Again", "Press Q to Quit", red)
             pygame.display.update()
-
+            """ avg_score += Length_of_snake
+            if counter < 100:
+                counter += 1
+                game_over = False
+                print(counter)
+                gameLoop()
+            else:
+                print(avg_score/100) """
+            
+            game_over = True
+            game_close = False
+            return Length_of_snake, timeList, pathLenghtList
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_q:
@@ -121,7 +141,12 @@ def gameLoop():  # main function
         
         #Alghoritm for path 
         if len(path) == 0:
-            path = algorithm_zigzag(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+            start_time = time.time()
+            #path = algorithm_bfs(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+            path = alg(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+            end_time = time.time()
+            timeList.append(end_time-start_time)
+            pathLenghtList.append(len(path))
         if len(path) > 0:            
             x1_change = path[-1][0]
             y1_change = path[-1][1]
@@ -165,9 +190,71 @@ def gameLoop():  # main function
 
             Length_of_snake += 1
         
-        clock.tick(snake_speed)
+        #clock.tick(snake_speed)
 
     pygame.quit()
-    quit()
+    #quit()
 
-gameLoop()
+
+
+# choose the algorithm to solve the game
+#"zigzag": algorithm_zigzag,
+SOLVING_ALGORITHM = {   "A* with dead ends": algorithm_A_star_with_dead_end_improvment, 
+    "random": algorithm_random,
+                        "best-first" : algorithm_best_first,
+                        "A*": algorithm_A_star,
+                        
+                        "bfs": algorithm_bfs,
+                        "dfs": algorithm_bfs
+                        }     
+
+runs = 5     
+for alg in SOLVING_ALGORITHM:
+    avg_lenght = 0
+    avg_time = []
+    avg_path_len = []
+    for _ in tqdm(range(runs),desc=f"testing {alg}"):
+        # Initialize Pygame
+        pygame.init()
+
+        # Define colors
+        white = (255, 255, 255)
+        yellow = (255, 255, 102)
+        black = (0, 0, 0)
+        red = (213, 50, 80)
+        green = (0, 255, 0)
+        blue = (50, 153, 213)
+
+        # Define screen dimensions
+        dis_width = 600
+        dis_height = 400
+
+        # Set up display
+        dis = pygame.display.set_mode((dis_width, dis_height))
+        pygame.display.set_caption('Snake Game')
+
+        # Define clock
+        clock = pygame.time.Clock()
+
+        # Define snake block and speed
+        snake_block = 10
+        snake_speed = 10000
+
+        #Setup counter for evaluation
+        avg_score = 0
+        counter = 0
+
+        # Define fonts
+        large_font_style = pygame.font.SysFont(None, 75)
+        small_font_style = pygame.font.SysFont(None, 35)
+
+        snakeLenght, timeList, pathLenghtList = gameLoop(SOLVING_ALGORITHM[alg])
+        avg_lenght += snakeLenght
+        avg_time.append(np.average(timeList))
+        avg_path_len.append(np.average(pathLenghtList))
+    with open('output.csv', mode='a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(["Alghoritm: " + str(alg)])
+        writer.writerow(["avg_lenght: " + str(avg_lenght/runs)])
+        writer.writerow(["avg_path lenghts: " + str(np.average(avg_path_len))])
+        writer.writerow(["avg_time: " + str(np.average(avg_time))])
