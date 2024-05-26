@@ -431,10 +431,8 @@ def algorithm_dfs(snake_list, fruit, grid):
 
     return path
 
-
-
 def algorithm_rta_star(snake_list, fruit, grid, second_best_rta_star):
-    depth_initial = 7
+    depth_initial = 1
     movement_cost = 1
 
     snake_list = [(int(x/10), int(y/10)) for x,y in snake_list]
@@ -540,9 +538,6 @@ def algorithm_rta_star(snake_list, fruit, grid, second_best_rta_star):
         path.append([0,-1])
 
     return path, second_best_rta_star
-
-
-
 
 def algorithm_rl(snake_list, foodx, foody, dis_width, dis_height, snake_block, Q):
     # get all necesarry data at this position

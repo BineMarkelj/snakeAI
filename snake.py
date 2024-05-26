@@ -2,24 +2,21 @@ import pygame
 import time
 import random
 from algorithms import *
-<<<<<<< HEAD
+import numpy as np
+import pickle
 from tqdm import tqdm
 import csv
 
-=======
-import numpy as np
-import pickle
->>>>>>> 27792eef5358c3416399714e9d3f2d0d0c5dc776
 
 
 # choose the algorithm to solve the game
-SOLVING_ALGORITHM = "RL"
+""" SOLVING_ALGORITHM = "RL"
 
 if SOLVING_ALGORITHM == "RL":
-    # load RL model
-    rl_model_path = "./rl_model/rl_model_old_100000.pkl"
-    with open(rl_model_path, 'rb') as f:
-        model = pickle.load(f)
+    # load RL model """
+rl_model_path = "./rl_model/rl_model_old_100000.pkl"
+with open(rl_model_path, 'rb') as f:
+    model = pickle.load(f)
 
 # Initialize Pygame
 pygame.init()
@@ -45,7 +42,7 @@ clock = pygame.time.Clock()
 
 # Define snake block and speed
 snake_block = 10
-snake_speed = 10000
+snake_speed = 25
 
 #Setup counter for evaluation
 avg_score = 0
@@ -69,13 +66,9 @@ def message(title, instruction1, instruction2, color):
     dis.blit(instruction_surface1, [dis_width / 6, dis_height / 2.5])
     dis.blit(instruction_surface2, [dis_width / 6, dis_height / 2.2])
 
-<<<<<<< HEAD
+
+
 def gameLoop(alg):  # main function
-=======
-
-
-def gameLoop():  # main function
->>>>>>> 27792eef5358c3416399714e9d3f2d0d0c5dc776
     game_over = False
     game_close = False
     
@@ -104,19 +97,19 @@ def gameLoop():  # main function
         foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
         foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
 
-<<<<<<< HEAD
+    # temp for RL
+    while foodx == 0 or foody == 0:
+        foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
+        foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
+
     #print("Food at: ",[foodx, foody])
     #print("Snake at: ",snake_List)
     #print(f'food in snake list: {[foodx, foody] in snake_List}')
-=======
-    print("Food at: ",[foodx, foody])
-    print("Snake at: ",snake_List)
-    print(f'food in snake list: {[foodx, foody] in snake_List}')
 
     # second best array used in RTA* algorithm
     second_best_rta_star = np.full((int(dis_height / snake_block), int(dis_width / snake_block)), -1)
-
->>>>>>> 27792eef5358c3416399714e9d3f2d0d0c5dc776
+    path_len = 0
+    time_len = 0
     
     while not game_over:
         print_result = True
@@ -126,7 +119,6 @@ def gameLoop():  # main function
             #time.sleep(5)
             message("You Lost", "Press R to Play Again", "Press Q to Quit", red)
             pygame.display.update()
-<<<<<<< HEAD
             """ avg_score += Length_of_snake
             if counter < 100:
                 counter += 1
@@ -139,14 +131,6 @@ def gameLoop():  # main function
             game_over = True
             game_close = False
             return Length_of_snake, timeList, pathLenghtList
-=======
-
-
-            if print_result:
-                print_result = False
-                print("Game Over, achieved score: ", Length_of_snake)
-
->>>>>>> 27792eef5358c3416399714e9d3f2d0d0c5dc776
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_q:
@@ -175,26 +159,23 @@ def gameLoop():  # main function
         if x1 >= dis_width or x1 < 0 or y1 >= dis_height or y1 < 0:
             game_close = True
             
-        
-        #Alghoritm for path 
+                
         if len(path) == 0:
-<<<<<<< HEAD
             start_time = time.time()
-            #path = algorithm_bfs(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
-            path = alg(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
-            end_time = time.time()
-            timeList.append(end_time-start_time)
-            pathLenghtList.append(len(path))
-        if len(path) > 0:            
-=======
-            path = algorithm_rl(snake_List, foodx, foody, dis_width, dis_height, snake_block, model)
+            if alg == "RTA*":
+                path,second_best_rta_star = algorithm_rta_star(snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)],second_best_rta_star)
+            elif alg == "RL":
+                path = algorithm_rl(snake_List, foodx, foody, dis_width, dis_height, snake_block, model)
+            else:
+                path = SOLVING_ALGORITHM[alg](snake_List,[foodx,foody], [int(dis_width/snake_block), int(dis_height/snake_block)])
+            end_time = time.time()            
+            path_len += len(path)
+            time_len += end_time-start_time
+
         if len(path) > 0:
->>>>>>> 27792eef5358c3416399714e9d3f2d0d0c5dc776
             x1_change = path[-1][0]
             y1_change = path[-1][1]
             path.pop()
-        else:
-            print("No path found")
 
         x1 += x1_change*snake_block
         y1 += y1_change*snake_block
@@ -216,11 +197,22 @@ def gameLoop():  # main function
         pygame.display.update()
         
         if x1 == foodx and y1 == foody:
+            
+            timeList.append(time_len)
+            pathLenghtList.append(path_len) 
+            path_len = 0
+            time_len = 0
+            
             foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
             foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
 
             # make sure the food is not on the snake_list/10.0
             while [foodx, foody] in snake_List:
+                foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
+                foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
+
+            # temp for RL
+            while foodx == 0 or foody == 0:
                 foodx = int(round(random.randrange(0, dis_width - snake_block) / 10.0) * 10)
                 foody = int(round(random.randrange(0, dis_height - snake_block) / 10.0) * 10)
 
@@ -235,7 +227,7 @@ def gameLoop():  # main function
             Length_of_snake += 1
             second_best_rta_star.fill(-1)
         
-        #clock.tick(snake_speed)
+        clock.tick(snake_speed)
 
     pygame.quit()
     #quit()
@@ -244,16 +236,18 @@ def gameLoop():  # main function
 
 # choose the algorithm to solve the game
 #"zigzag": algorithm_zigzag,
-SOLVING_ALGORITHM = {   "A* with dead ends": algorithm_A_star_with_dead_end_improvment, 
-    "random": algorithm_random,
+SOLVING_ALGORITHM = {   "RL": "RL", 
+                        "RTA*": algorithm_rta_star,
+                        "bfs with dead ends": algorithm_bfs_with_dead_end_improvment,
+                        "A* with dead ends": algorithm_A_star_with_dead_end_improvment, 
+                        "random": algorithm_random,
                         "best-first" : algorithm_best_first,
-                        "A*": algorithm_A_star,
-                        
+                        "A*": algorithm_A_star,                        
                         "bfs": algorithm_bfs,
-                        "dfs": algorithm_bfs
+                        "dfs": algorithm_bfs                                                
                         }     
 
-runs = 5     
+runs = 100    
 for alg in SOLVING_ALGORITHM:
     avg_lenght = 0
     avg_time = []
@@ -283,7 +277,7 @@ for alg in SOLVING_ALGORITHM:
 
         # Define snake block and speed
         snake_block = 10
-        snake_speed = 10000
+        snake_speed = 50
 
         #Setup counter for evaluation
         avg_score = 0
@@ -293,13 +287,13 @@ for alg in SOLVING_ALGORITHM:
         large_font_style = pygame.font.SysFont(None, 75)
         small_font_style = pygame.font.SysFont(None, 35)
 
-        snakeLenght, timeList, pathLenghtList = gameLoop(SOLVING_ALGORITHM[alg])
+        snakeLenght, timeList, pathLenghtList = gameLoop(alg)
         avg_lenght += snakeLenght
         avg_time.append(np.average(timeList))
         avg_path_len.append(np.average(pathLenghtList))
     with open('output.csv', mode='a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(["Alghoritm: " + str(alg)])
+        writer.writerow(["Algorithm: " + str(alg)])
         writer.writerow(["avg_lenght: " + str(avg_lenght/runs)])
         writer.writerow(["avg_path lenghts: " + str(np.average(avg_path_len))])
         writer.writerow(["avg_time: " + str(np.average(avg_time))])
